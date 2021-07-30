@@ -19,17 +19,19 @@ const {
 
 const data = {
   animate: false,
-  iterations: 3,
+  iterations: 4,
   angleL: 22,
-  angleH: 120,
+  randomnessL: 5,
+  angleH: 24,
+  randomnessH: 5,
   angleU: 45,
+  randomnessU: 0,
   lineWidth: 7,
-  lineLength: 3.1,
   widthDecay: 1,
-  lengthDecay: 1,
-  background: "#fafafa",
+  lineLength: 3.1,
+  randomnessLength: 2,
   lineColor: "#666666",
-  //lineJoin: 3,
+  background: "#fafafa",
   viewX: 0.5,
   viewY: 0.8,
 };
@@ -112,9 +114,14 @@ const sketch = (settings) => {
       .hex();
     turtle.lineWidth = data.lineWidth;
     turtle.lineLength = data.lineLength * easeOut(growthPlayhead);
+    turtle.randomnessLength = data.randomnessLength;
     turtle.angleL = data.angleL * easeOut(growthPlayhead);
     turtle.angleH = data.angleH; // * easeOut(growthPlayhead);
     turtle.angleU = data.angleU; // * easeOut(growthPlayhead);
+    turtle.randomnessL = data.randomnessL;
+    turtle.randomnessH = data.randomnessH;
+    turtle.randomnessU = data.randomnessU;
+
     turtle.clear();
     turtle.run(lsystemResult);
   };
@@ -145,11 +152,15 @@ const sketch = (settings) => {
       .step(1)
       .onChange(lsystemIterate);
     add(systemFolder, data, "angleL", 0, 180).onChange(draw);
+    add(systemFolder, data, "randomnessL", 0, 10).onChange(draw);
     add(systemFolder, data, "angleH", 0, 180).onChange(draw);
+    add(systemFolder, data, "randomnessH", 0, 10).onChange(draw);
     add(systemFolder, data, "angleU", 0, 180).onChange(draw);
+    add(systemFolder, data, "randomnessU", 0, 10).onChange(draw);
     add(systemFolder, data, "lineWidth", 1, 50).onChange(draw);
     add(systemFolder, data, "widthDecay", 0, 1).onChange(draw);
     add(systemFolder, data, "lineLength", 0, 1).onChange(draw);
+    add(systemFolder, data, "randomnessLength", 0, 10).onChange(draw);
     add(systemFolder, data, "lengthDecay", 0, 1).onChange(draw);
 
     let styleFolder = gui.addFolder("Style & View");

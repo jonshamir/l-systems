@@ -1,10 +1,12 @@
 import { MeshLine, MeshLineMaterial, MeshLineRaycast } from "three.meshline";
+import { randInRange, degToRad } from "./utils";
 
 const Turtle = function (opts) {
   this._opts = opts;
   this.lineWidth = opts.lineWidth;
   this.lineLength = opts.lineLength;
   this.lineColor = opts.lineColor;
+  this.randomnessLength = opts.randomnessLength;
   this.name = opts.name;
   this.pos = opts.pos.clone();
   this.dir = opts.dir.clone();
@@ -20,10 +22,9 @@ const Turtle = function (opts) {
   this.angleL = 60;
   this.angleH = 90;
   this.angleU = 45;
-  this.randRangeL = 0;
-  this.randRangeH = 0;
-  this.randRangeU = 0;
-  this.randRangeLength = 0;
+  this.randomnessL = opts.randomnessL;
+  this.randomnessH = opts.randomnessH;
+  this.randomnessU = opts.randomnessU;
 };
 
 Turtle.prototype = {
@@ -40,18 +41,18 @@ Turtle.prototype = {
   run: function (cmd, opts) {
     this.age++;
     this._cmd = cmd;
-    this._idx = 0;
-    while (this._idx < cmd.length) {
+    this.currIndex = 0;
+    while (this.currIndex < cmd.length) {
       // / represents head turn, + represents up turn, & represents right turn
-      switch (cmd[this._idx]) {
+      switch (cmd[this.currIndex]) {
         case "F":
-          const replacePrev = cmd[this._idx - 1] === "F";
+          const replacePrev = cmd[this.currIndex - 1] === "F";
           const oldPos = this.pos.clone();
           this.pos.add(
             this.dir
               .clone()
               .multiplyScalar(
-                this.lineLength + Math.random() * this.randRangeLength
+                this.lineLength + randInRange(this.randomnessLength)
               )
           );
           this.addSegment(oldPos, this.pos.clone(), replacePrev);
@@ -60,8 +61,7 @@ Turtle.prototype = {
           this.addLeaf();
           break;
         case "-":
-          var rad = parseFloat((-this.angleU * Math.PI) / 180);
-          rad += Math.random() * this.randRangeU;
+          var rad = degToRad(-this.angleU + randInRange(this.randomnessU));
           this.dir.applyMatrix4(
             new THREE.Matrix4().makeRotationAxis(this.up, rad)
           );
@@ -70,8 +70,7 @@ Turtle.prototype = {
           );
           break;
         case "+":
-          var rad = parseFloat((this.angleU * Math.PI) / 180);
-          rad += Math.random() * this.randRangeU;
+          var rad = degToRad(this.angleU + randInRange(this.randomnessU));
           this.dir.applyMatrix4(
             new THREE.Matrix4().makeRotationAxis(this.up, rad)
           );
@@ -80,8 +79,7 @@ Turtle.prototype = {
           );
           break;
         case "\\":
-          var rad = parseFloat((-this.angleH * Math.PI) / 180);
-          rad += Math.random() * this.randRangeH;
+          var rad = degToRad(-this.angleH + randInRange(this.randomnessH));
           this.dir.applyMatrix4(
             new THREE.Matrix4().makeRotationAxis(this.dir, rad)
           );
@@ -90,8 +88,7 @@ Turtle.prototype = {
           );
           break;
         case "/":
-          var rad = parseFloat((this.angleH * Math.PI) / 180);
-          rad += Math.random() * this.randRangeH;
+          var rad = degToRad(this.angleH + randInRange(this.randomnessH));
           this.dir.applyMatrix4(
             new THREE.Matrix4().makeRotationAxis(this.dir, rad)
           );
@@ -100,8 +97,7 @@ Turtle.prototype = {
           );
           break;
         case "^":
-          var rad = parseFloat((-this.angleL * Math.PI) / 180);
-          rad += Math.random() * this.randRangeL;
+          var rad = degToRad(-this.angleL + randInRange(this.randomnessL));
           var right = this.dir.clone().cross(this.up);
           this.dir.applyMatrix4(
             new THREE.Matrix4().makeRotationAxis(right, rad)
@@ -111,8 +107,7 @@ Turtle.prototype = {
           );
           break;
         case "&":
-          var rad = parseFloat((this.angleL * Math.PI) / 180);
-          rad += Math.random() * this.randRangeL;
+          var rad = degToRad(this.angleL + +randInRange(this.randomnessL));
           var right = this.dir.clone().cross(this.up);
           this.dir.applyMatrix4(
             new THREE.Matrix4().makeRotationAxis(right, rad)
@@ -140,22 +135,22 @@ Turtle.prototype = {
           //prune this branch
           //example: aaa[asdadasd[aa[dsd%a[s]da]bbb]ccc]asdadasd
           var ctr = 0;
-          while (++this._idx < cmd.length && ctr != -1) {
-            if (cmd[this._idx] == "[") {
+          while (++this.currIndex < cmd.length && ctr != -1) {
+            if (cmd[this.currIndex] == "[") {
               ctr++;
             }
-            if (cmd[this._idx] == "]") {
+            if (cmd[this.currIndex] == "]") {
               ctr--;
             }
           }
-          this._idx--; //to compensate for the idx increment that happens right after all the switch cases
+          this.currIndex--; //to compensate for the idx increment that happens right after all the switch cases
           this.popStack();
           break;
         default:
-          // console.log("Wrong symbol found: " + cmd[this._idx]);
+          // console.log("Wrong symbol found: " + cmd[this.currIndex]);
           break;
       }
-      this._idx++;
+      this.currIndex++;
     }
     this.draw();
   },
@@ -211,7 +206,7 @@ Turtle.prototype = {
       lineWidth: this.lineWidth,
     });
 
-    this.segments.forEach((segment) => {
+    this.segments.forEach((segment, i) => {
       const geometry = new THREE.Geometry();
       geometry.vertices.push(segment[0]);
       geometry.vertices.push(segment[1]);
